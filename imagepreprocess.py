@@ -1,15 +1,10 @@
-import sys
-from turtle import color
+from cgi import test
 import numpy as np
-import argparse
-from PIL import Image, ImageEnhance, ImageTk
+from PIL import Image, ImageEnhance
 import cv2
-from tkinter import filedialog
-import os
-import tkinter
-import matplotlib
+import cairo
 
-def quantization(image, clusters=4, rounds=1):
+def quantization(image, clusters=4, rounds=5):
     h, w = image.shape[:2]
     samples = np.zeros([h*w,3], dtype=np.float32)
     count = 0
@@ -47,15 +42,15 @@ def pixellize(img, superpixel_size = 4, n_colors = 4):
     img = contr_booster.enhance(float(contrast))
 
     # reduce the number of colors used in picture
-    img = img.convert('P', palette=Image.ADAPTIVE, colors=n_colors)
+    img = img.convert('P', palette=Image.Palette.ADAPTIVE, colors=n_colors)
 
     # reduce image size
     superpixel_size = int(superpixel_size)
     reduced_size = (img_size[0] // superpixel_size, img_size[1] // superpixel_size)
-    img = img.resize(reduced_size, Image.BICUBIC)
+    img = img.resize(reduced_size, Image.Resampling.BICUBIC)
 
     # resize to original shape to give pixelated look
-    img = img.resize(img_size, Image.BICUBIC)
+    img = img.resize(img_size, Image.Resampling.BICUBIC)
 
     return img
 
@@ -75,15 +70,14 @@ def color_distribution(img):
     # Package together
     return [(round(color[0] / totalpixels * 100, 2), color[1]) for i, color in enumerate(colorfrequency)]
 
-#### Main UI
+### Program
 
-filename = "logo.png"
+filename = "logo3.png"
 data_save = "data"
+pixel_size = 5
+n_colors = 6
 img = Image.open(filename)
-processed_img = process_image(img) 
+processed_img = process_image(img, pixel_size=pixel_size, n_colors=n_colors) 
 
 print(color_distribution(processed_img))
-processed_img.show(processed_img)
-
-# Save image data as numpy array (to not lose any data)
-np.save(data_save, np.array(processed_img))
+processed_img.save("output.png")
